@@ -14,7 +14,7 @@ def remove_noise(image, blur_strength = config.NOISE_REDUCTION_STRENGTH):
     return cv2.medianBlur(image,blur_strength)
 
 def thresholding(image):
-    return cv2.threshold(image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+    return cv2.threshold(image, 0, 255, config.THRESHOLDING + cv2.THRESH_OTSU)[1]
 
 def gaussian_thresholding(image):
     return cv2.adaptiveThreshold(image,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,11,config.NOISE_REDUCTION_STRENGTH)
@@ -45,5 +45,21 @@ def get_word_boxes(image):
             image = cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
     return image
 
+def erode(image, iterations=1):
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (config.ERODE_X, config.ERODE_Y))
+    return cv2.erode(image, kernel, iterations=iterations)
+
+def dilate(image, iterations=1):
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (config.DILATE_X, config.DILATE_Y))
+    return cv2.dilate(image, kernel, iterations=iterations)
+
 def get_string(image):
     return pytesseract.image_to_string(image = image, lang=config.LANG)
+
+def get_contours(image):
+    contours, hierarchy = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_KCOS)
+    return contours, hierarchy
+
+def draw_contours(image, contours):
+    return cv2.drawContours(image, contours, -1, (255, 0, 0), 3)
+    
