@@ -1,6 +1,7 @@
 import cv2
 import pytesseract
 import config
+import re
 
 def get_greyscale(image):
     return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -17,7 +18,7 @@ def thresholding(image):
     return cv2.threshold(image, 0, 255, config.THRESHOLDING + cv2.THRESH_OTSU)[1]
 
 def gaussian_thresholding(image):
-    return cv2.adaptiveThreshold(image,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,11,config.NOISE_REDUCTION_STRENGTH)
+    return cv2.adaptiveThreshold(image,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,9,config.NOISE_REDUCTION_STRENGTH)
 
 def canny(image, thr1=100, thr2=200):
     return cv2.Canny(image, thr1, thr2)
@@ -36,13 +37,13 @@ def get_boxes(image):
         image = cv2.rectangle(image, (int(b[1]), h - int(b[2])), (int(b[3]), h - int(b[4])), (255, 255, 255), 2)
     return image
 
-def get_word_boxes(image):
+def get_word_boxes(image, rgb=(0,0,0)):
     d = get_data(image)
     n_boxes = len(d['text'])
     for i in range(n_boxes):
         if int(d['conf'][i]) > 60:
             (x, y, w, h) = (d['left'][i], d['top'][i], d['width'][i], d['height'][i])
-            image = cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            image = cv2.rectangle(image, (x, y), (x + w, y + h), rgb, 2)
     return image
 
 def erode(image, iterations=1):
@@ -63,3 +64,17 @@ def get_contours(image):
 def draw_contours(image, contours):
     return cv2.drawContours(image, contours, -1, (255, 0, 0), 3)
     
+def ocr(image):
+    try:
+        return pytesseract.image_to_string(image, lang=config.LANG, config = config.CUSTOM_CONFIG)
+    except:
+        return pytesseract.image_to_string(image, lang=config.LANG)
+    
+def remove_single_letters(string:str, keep_e=False):
+    if keep_e:
+        return re.sub(r"\b(?![eEéÉ]\b)\w\b", "", string)
+    else:
+        return re.sub(r"\b\w{1}\b\s*", "", string)
+    
+def remove_breaks(string:str):
+    return string.replace('\n', '').replace('\x0c', ' ')
