@@ -3,6 +3,8 @@ import pytesseract
 import config
 import re
 
+#----------------------------------------PREPROCESSING
+
 def get_greyscale(image):
     return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -64,17 +66,38 @@ def get_contours(image):
 def draw_contours(image, contours):
     return cv2.drawContours(image, contours, -1, (255, 0, 0), 3)
     
+#----------------------------------------OCR
+
 def ocr(image):
     try:
         return pytesseract.image_to_string(image, lang=config.LANG, config = config.CUSTOM_CONFIG)
     except:
         return pytesseract.image_to_string(image, lang=config.LANG)
     
-def remove_single_letters(string:str, keep_e=False):
-    if keep_e:
+#----------------------------------------POSTPROCESSING
+
+def remove_single_letters(string:str, keep_e=False, keep_a=False):
+    if keep_e and keep_a:
+        return re.sub(r"\b(?![eEéÉaAàÀ]\b)\w\b", "", string)
+    elif keep_e:
         return re.sub(r"\b(?![eEéÉ]\b)\w\b", "", string)
+    elif keep_a:
+        return re.sub(r"\b(?![aAàÀ]\b)\w\b", "", string)
     else:
         return re.sub(r"\b\w{1}\b\s*", "", string)
     
-def remove_breaks(string:str):
-    return string.replace('\n', '').replace('\x0c', ' ')
+def remove_breaks(string:str, add_space=False):
+    if add_space:
+        return string.replace('\n', ' ').replace('\x0c', '')
+    else:
+        return string.replace('\n', '').replace('\x0c', '')
+
+def remove_special(string:str):
+    string_aux = string.split('\n')
+    final = list()
+    for single_string in string_aux:
+        final.append(re.sub(r"[^a-zA-ZáàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ0-9 ]+", "", single_string))
+    return final
+
+def remove_double_spaces(string:str):
+    return re.sub(r"\s{2,}", " ", ''.join(string))
