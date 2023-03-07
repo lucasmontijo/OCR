@@ -2,7 +2,7 @@ import cv2
 
 #Arquivo
 PATH = 'data/images/'
-FILE = 'xray_ccomp'
+FILE = 'ipp_noisy_70'
 FORMAT = '.jpg'
 
 #Língua

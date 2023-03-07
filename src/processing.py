@@ -41,8 +41,7 @@ def get_boxes(image):
 
 def get_word_boxes(image, rgb=(0,0,0)):
     d = get_data(image)
-    n_boxes = len(d['text'])
-    for i in range(n_boxes):
+    for i, text in enumerate(d['text']):
         if int(d['conf'][i]) > 60:
             (x, y, w, h) = (d['left'][i], d['top'][i], d['width'][i], d['height'][i])
             image = cv2.rectangle(image, (x, y), (x + w, y + h), rgb, 2)
@@ -85,19 +84,19 @@ def remove_single_letters(string:str, keep_e=False, keep_a=False):
         return re.sub(r"\b(?![aAàÀ]\b)\w\b", "", string)
     else:
         return re.sub(r"\b\w{1}\b\s*", "", string)
-    
+
 def remove_breaks(string:str, add_space=False):
     if add_space:
-        return string.replace('\n', ' ').replace('\x0c', '')
+        return re.sub(r'[\n\x0c]', ' ', string)
     else:
-        return string.replace('\n', '').replace('\x0c', '')
+        return re.sub(r'[\n\x0c]', '', string)
 
 def remove_special(string:str):
     string_aux = string.split('\n')
     final = list()
     for single_string in string_aux:
-        final.append(re.sub(r"[^a-zA-ZáàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ0-9 ]+", "", single_string))
+        final.append(re.sub(r"[^a-zA-ZáàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ0-9+ ]+", "", single_string))
     return final
 
 def remove_double_spaces(string:str):
-    return re.sub(r"\s{2,}", " ", ''.join(string))
+    return re.sub(r"\s+", " ", ''.join(string))
