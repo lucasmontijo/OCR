@@ -76,13 +76,15 @@ def ocr(image):
     
 #----------------------------------------POSTPROCESSING
 
-def remove_single_letters(string:str, keep_e=False, ):
-    final = None
-    if keep_e:
-        final =  re.sub(r"\b(?![eEéÉ]\b)\w\b", "", string)
+def remove_single_letters(string:str, keep_e=False, keep_a=False):
+    if keep_e and keep_a:
+        return re.sub(r"\b(?![eEéÉaAàÀ]\b)\w\b", "", string)
+    elif keep_e:
+        return re.sub(r"\b(?![eEéÉ]\b)\w\b", "", string)
+    elif keep_a:
+        return re.sub(r"\b(?![aAàÀ]\b)\w\b", "", string)
     else:
-        final = re.sub(r"\b\w{1}\b\s*", "", string)
-    return final
+        return re.sub(r"\b\w{1}\b\s*", "", string)
     
 def remove_breaks(string:str, add_space=False):
     if add_space:
@@ -98,4 +100,4 @@ def remove_special(string:str):
     return final
 
 def remove_double_spaces(string:str):
-    return re.sub(r"\s{2,}", " ", ' '.join(string))
+    return re.sub(r"\s{2,}", " ", ''.join(string))
