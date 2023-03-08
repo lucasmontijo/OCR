@@ -2,7 +2,7 @@ import cv2
 
 #Arquivo
 PATH = 'data/images/'
-FILE = 'ipp_noisy_70'
+FILE = 'book_70'
 FORMAT = '.jpg'
 
 #Língua
@@ -14,11 +14,11 @@ LANG = 'por'
 #Processamento
 NOISE_REDUCTION_STRENGTH = 9
 
-GAUSSIAN_A = 5
-GAUSSIAN_B = 5
+GAUSSIAN_A = 15
+GAUSSIAN_B = 15
 
 #thresholding method
-THRESHOLDING = cv2.THRESH_BINARY_INV
+THRESHOLDING = cv2.THRESH_BINARY
 
 #ERODE and DILATE sizes (pixels)
 ERODE_X = 2

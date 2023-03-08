@@ -29,23 +29,25 @@ def get_data(image):
     return pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT, lang='por')
 
 def get_boxes(image):
-    try:
-        h, w, c = image.shape
-    except:
-        h, w = image.shape
+    h = image.shape[0]
     boxes = pytesseract.image_to_boxes(image) 
     for b in boxes.splitlines():
         b = b.split(' ')
-        image = cv2.rectangle(image, (int(b[1]), h - int(b[2])), (int(b[3]), h - int(b[4])), (255, 255, 255), 2)
+        image = cv2.rectangle(image, (int(b[1]), h - int(b[2])), (int(b[3]), h - int(b[4])), (255, 255, 255), 4)
     return image
 
-def get_word_boxes(image, rgb=(0,0,0)):
+def get_word_boxes(image, rgb=(0,0,0), raw=None):
+    try:
+        if raw == None:
+            raw = image
+    except:
+        pass
     d = get_data(image)
     for i, text in enumerate(d['text']):
         if int(d['conf'][i]) > 60:
             (x, y, w, h) = (d['left'][i], d['top'][i], d['width'][i], d['height'][i])
-            image = cv2.rectangle(image, (x, y), (x + w, y + h), rgb, 2)
-    return image
+            raw = cv2.rectangle(raw, (x, y), (x + w, y + h), rgb, 4)
+    return raw
 
 def erode(image, iterations=1):
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (config.ERODE_X, config.ERODE_Y))
@@ -75,13 +77,21 @@ def ocr(image):
     
 #----------------------------------------POSTPROCESSING
 
-def remove_single_letters(string:str, keep_e=False, keep_a=False):
-    if keep_e and keep_a:
+def remove_single_letters(string:str, keep_e=False, keep_a=False, keep_o=False):
+    if keep_e and keep_a and keep_o:
+        return re.sub(r"\b(?![eEéÉaAàÀoO]\b)\w\b", "", string)
+    elif keep_e and keep_o:
+        return re.sub(r"\b(?![eEéÉoO]\b)\w\b", "", string)
+    elif keep_a and keep_o:
+        return re.sub(r"\b(?![aAàÀoO]\b)\w\b", "", string)
+    elif keep_e and keep_a:
         return re.sub(r"\b(?![eEéÉaAàÀ]\b)\w\b", "", string)
     elif keep_e:
         return re.sub(r"\b(?![eEéÉ]\b)\w\b", "", string)
     elif keep_a:
         return re.sub(r"\b(?![aAàÀ]\b)\w\b", "", string)
+    elif keep_o:
+        return re.sub(r"\b(?![oO]\b)\w\b", "", string)
     else:
         return re.sub(r"\b\w{1}\b\s*", "", string)
 
@@ -91,12 +101,16 @@ def remove_breaks(string:str, add_space=False):
     else:
         return re.sub(r'[\n\x0c]', '', string)
 
-def remove_special(string:str):
+def remove_special(string:str, keep_dot_comma=False):
     string_aux = string.split('\n')
     final = list()
     for single_string in string_aux:
-        final.append(re.sub(r"[^a-zA-ZáàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ0-9+ ]+", "", single_string))
+        if keep_dot_comma:
+            final.append(re.sub(r"[^a-zA-ZáàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ0-9+,. ]+", "", single_string))
+        else:
+            final.append(re.sub(r"[^a-zA-ZáàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ0-9+ ]+", "", single_string))
     return final
 
 def remove_double_spaces(string:str):
     return re.sub(r"\s+", " ", ''.join(string))
+
