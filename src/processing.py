@@ -20,7 +20,7 @@ def thresholding(image):
     return cv2.threshold(image, 0, 255, config.THRESHOLDING + cv2.THRESH_OTSU)[1]
 
 def gaussian_thresholding(image):
-    return cv2.adaptiveThreshold(image,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,9,config.NOISE_REDUCTION_STRENGTH)
+    return cv2.adaptiveThreshold(image,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,51,config.NOISE_REDUCTION_STRENGTH)
 
 def canny(image, thr1=100, thr2=200):
     return cv2.Canny(image, thr1, thr2)

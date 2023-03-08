@@ -2,7 +2,7 @@ import cv2
 
 #Arquivo
 PATH = 'data/images/'
-FILE = 'book_70'
+FILE = 'graphic'
 FORMAT = '.jpg'
 
 #Língua
