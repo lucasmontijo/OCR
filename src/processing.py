@@ -2,6 +2,7 @@ import cv2
 import pytesseract
 import config
 import re
+import numpy as np
 
 #----------------------------------------PREPROCESSING
 
@@ -13,6 +14,15 @@ def gaussian(image, gaussian_a = config.GAUSSIAN_A, gaussian_b = config.GAUSSIAN
         raise Exception("Config arguments must be odd.")
     return cv2.GaussianBlur(image, (gaussian_a, gaussian_b), 0)
 
+def normalize(image):
+    return cv2.normalize(
+        image,
+        np.zeros((image.shape[0], image.shape[1])),
+        0,
+        255,
+        cv2.NORM_MINMAX
+    )
+
 def remove_noise(image, blur_strength = config.NOISE_REDUCTION_STRENGTH):
     return cv2.medianBlur(image,blur_strength)
 
@@ -20,7 +30,7 @@ def thresholding(image):
     return cv2.threshold(image, 0, 255, config.THRESHOLDING + cv2.THRESH_OTSU)[1]
 
 def gaussian_thresholding(image):
-    return cv2.adaptiveThreshold(image,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,51,config.NOISE_REDUCTION_STRENGTH)
+    return cv2.adaptiveThreshold(image,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, config.BLOCK_SIZE,config.NOISE_REDUCTION_STRENGTH)
 
 def canny(image, thr1=100, thr2=200):
     return cv2.Canny(image, thr1, thr2)
@@ -49,12 +59,12 @@ def get_word_boxes(image, rgb=(0,0,0), raw=None):
             raw = cv2.rectangle(raw, (x, y), (x + w, y + h), rgb, 4)
     return raw
 
-def erode(image, iterations=1):
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (config.ERODE_X, config.ERODE_Y))
+def erode(image, iterations=1, window_x = config.ERODE_X, window_y = config.ERODE_Y):
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (window_x, window_y))
     return cv2.erode(image, kernel, iterations=iterations)
 
-def dilate(image, iterations=1):
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (config.DILATE_X, config.DILATE_Y))
+def dilate(image, iterations=1, window_x = config.DILATE_X, window_y = config.DILATE_Y):
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (window_x, window_y))
     return cv2.dilate(image, kernel, iterations=iterations)
 
 def get_string(image):
